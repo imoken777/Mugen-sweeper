@@ -13,16 +13,26 @@ const toGameModel = (prismaGame: Game) => ({
 });
 
 export const gameRepository = {
-  save: async (game: GameModel): Promise<GameModel> => {
-    const prismaGame = await prismaClient.game.upsert({
-      where: { id: game.id },
-      update: { userInputs: game.userInputs },
-      create: { id: game.id, bombMap: game.bombMap, userInputs: game.userInputs },
-    });
-    return toGameModel(prismaGame);
+  save: async (game: GameModel): Promise<GameModel | null> => {
+    try {
+      const prismaGame = await prismaClient.game.upsert({
+        where: { id: game.id },
+        update: { userInputs: game.userInputs },
+        create: { id: game.id, bombMap: game.bombMap, userInputs: game.userInputs },
+      });
+      return toGameModel(prismaGame);
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   },
   find: async (): Promise<GameModel | null> => {
-    const prismaGame = await prismaClient.game.findFirst().catch(() => null);
-    return prismaGame !== null ? toGameModel(prismaGame) : null;
+    try {
+      const prismaGame = await prismaClient.game.findFirst();
+      return prismaGame !== null ? toGameModel(prismaGame) : null;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   },
 };

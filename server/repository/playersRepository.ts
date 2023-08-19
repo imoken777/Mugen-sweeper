@@ -14,39 +14,58 @@ const toPlayerModel = (prismaPlayer: Player) => ({
   isLive: z.boolean().parse(prismaPlayer.isLive),
 });
 export const playersRepository = {
-  save: async (player: PlayerModel): Promise<PlayerModel> => {
-    const prismaPlayer = await prismaClient.player.upsert({
-      where: { id: player.id },
-      update: {
-        name: player.name,
-        x: player.x,
-        y: player.y,
-        score: player.score,
-        isLive: player.isLive,
-      },
-      create: {
-        id: player.id,
-        name: player.name,
-        x: player.x,
-        y: player.y,
-        score: player.score,
-        isLive: player.isLive,
-      },
-    });
-    return toPlayerModel(prismaPlayer);
+  save: async (player: PlayerModel): Promise<PlayerModel | null> => {
+    try {
+      const prismaPlayer = await prismaClient.player.upsert({
+        where: { id: player.id },
+        update: {
+          name: player.name,
+          x: player.x,
+          y: player.y,
+          score: player.score,
+          isLive: player.isLive,
+        },
+        create: {
+          id: player.id,
+          name: player.name,
+          x: player.x,
+          y: player.y,
+          score: player.score,
+          isLive: player.isLive,
+        },
+      });
+      return toPlayerModel(prismaPlayer);
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   },
   findAll: async (): Promise<PlayerModel[]> => {
-    const prismaPlayers = await prismaClient.player.findMany({
-      orderBy: { score: 'desc' }, //ランキングで使う？
-    });
-    return prismaPlayers.map(toPlayerModel);
+    try {
+      const prismaPlayers = await prismaClient.player.findMany({
+        orderBy: { score: 'desc' }, //ランキングで使う？
+      });
+      return prismaPlayers.map(toPlayerModel);
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
   },
   find: async (id: UserId): Promise<PlayerModel | null> => {
-    const prismaPlayer = await prismaClient.player.findUnique({ where: { id } });
-    return prismaPlayer !== null ? toPlayerModel(prismaPlayer) : null;
+    try {
+      const prismaPlayer = await prismaClient.player.findUnique({ where: { id } });
+      return prismaPlayer !== null ? toPlayerModel(prismaPlayer) : null;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   },
 
   delete: async (id: UserId): Promise<void> => {
-    await prismaClient.player.delete({ where: { id } });
+    try {
+      await prismaClient.player.delete({ where: { id } });
+    } catch (error) {
+      console.log(error);
+    }
   },
 };
